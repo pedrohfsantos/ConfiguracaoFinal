@@ -34,6 +34,7 @@ class Links:
         links = [url]
 
         for link in tqdm(links, unit=" links", desc=" Rastreando e categorizando os links", leave=False):
+        # for link in links:
             try:
                 r = self.session.get(link)
                 links_pagina = r.html.absolute_links
@@ -51,6 +52,7 @@ class Links:
 
     def valida_404(self, links):
         for link in tqdm(links, unit=" links", desc=" Verificando se há links levando para página 404", leave=False):
+        # for link in links:
             try:
                 location = self.session.head(link).headers["Location"]
 
@@ -64,4 +66,5 @@ class Links:
     def url_base(self, url, mpitemporario=False):
         url = url.split("//")
         url = url[1].split("/")
-        return url[0] if mpitemporario else [x for x in url if x][-1]
+        url = url[0] if mpitemporario else [x for x in url if x][-1]
+        return url.replace('www.', '')
