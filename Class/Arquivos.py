@@ -1,5 +1,8 @@
 import shutil
 import re
+from os import listdir
+from difflib import SequenceMatcher as similar
+from pprint import pprint
 
 
 class Arquivos:
@@ -69,8 +72,38 @@ class Arquivos:
             self.log.append(f"- error when changing the file .htaccess")
 
 
+    def redirect(self, root, new_links):
+        all_files =  listdir(root)
+        r = re.compile("links?.txt", re.IGNORECASE)
+        file_name = list(filter(r.match, all_files))[0]
+
+        with open(f"{root}/{file_name}", "r") as links:
+            line = links.readlines()
+            old_links = [url.strip("\n").strip(" ") for url in line]
+            old_links = list(filter(None, [re.sub("https?://.*?/", "", url) for url in old_links]))
+            new_links = list(filter(None, [re.sub("https?://.*?/", "", url) for url in new_links]))
+            redirects = []
+            
+            for old_link in old_links:
+                if old_link not in new_links:
+                    highest_score = 0
+                    winner = ""
+                    for new_link in new_links:
+                        score = similar(None, old_link, new_link).ratio()
+                        if score > highest_score:
+                            highest_score = score
+                            winner = "{RAIZ}/"+new_link if highest_score >= 0.6 else "{RAIZ}"
+
+                    redirects.append(f"redirect 301 /{old_link} {winner}")
+
+        redirects = "\n        ".join(redirects)
+        self.change_file(
+                file=f"{root}/inc/gerador-htaccess.php", 
+                regex="#redirects", 
+                new=f"#redirects\n {redirects}"
+                )
+
+
     def log_error(self, name, message):
-        with open(f"{name}.txt", "a", -1, "utf-8") as arquivo:
+        with open(f"{name}.txt", 1, "utf-8") as arquivo:
             arquivo.write(f"{message}\n")
-
-

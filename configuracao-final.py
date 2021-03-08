@@ -91,6 +91,9 @@ for projeto in tqdm(projetos):
 
             arquivos.htaccess(file=f'{path}/inc/gerador-htaccess.php')
 
+            arquivos.redirect(root=path, new_links=site)
+
+
             if len(log) > 0:
                 arquivos.log_error("error", f"{url} - " + ' '.join(log))
 
@@ -105,4 +108,3 @@ for projeto in tqdm(projetos):
 
     except:
         arquivos.log_error("error", f"{url} - It was not possible to complete the script")
-
