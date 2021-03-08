@@ -24,7 +24,6 @@ class Links:
             and ".JPEG" not in url
             and ".png" not in url
             and ".PNG" not in url
-            and ".pdf" not in url
             and "tel:" not in url
             and "mailto:" not in url
             else False
@@ -34,7 +33,6 @@ class Links:
         links = [url]
 
         for link in tqdm(links, unit=" links", desc=" Rastreando e categorizando os links", leave=False):
-        # for link in links:
             try:
                 r = self.session.get(link)
                 links_pagina = r.html.absolute_links
@@ -44,7 +42,7 @@ class Links:
 
             else:
                 for link_pagina in links_pagina:
-                    if self.url_base(url) in link_pagina and self.valida_url(link_pagina):
+                    if "www." + self.url_base(url) in link_pagina and self.valida_url(link_pagina):
                         if link_pagina not in links:
                             links.append(link_pagina)
 
@@ -68,3 +66,4 @@ class Links:
         url = url[1].split("/")
         url = url[0] if mpitemporario else [x for x in url if x][-1]
         return url.replace('www.', '')
+
