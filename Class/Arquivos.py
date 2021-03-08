@@ -73,28 +73,32 @@ class Arquivos:
 
 
     def redirect(self, root, new_links):
-        all_files =  listdir(root)
-        r = re.compile("links?.txt", re.IGNORECASE)
-        file_name = list(filter(r.match, all_files))[0]
+        try:
+            all_files =  listdir(root)
+            r = re.compile("links?.txt", re.IGNORECASE)
+            file_name = list(filter(r.match, all_files))[0]
 
-        with open(f"{root}/{file_name}", "r") as links:
-            line = links.readlines()
-            old_links = [url.strip("\n").strip(" ") for url in line]
-            old_links = list(filter(None, [re.sub("https?://.*?/", "", url) for url in old_links]))
-            new_links = list(filter(None, [re.sub("https?://.*?/", "", url) for url in new_links]))
-            redirects = []
-            
-            for old_link in old_links:
-                if old_link not in new_links:
-                    highest_score = 0
-                    winner = ""
-                    for new_link in new_links:
-                        score = similar(None, old_link, new_link).ratio()
-                        if score > highest_score:
-                            highest_score = score
-                            winner = "{RAIZ}/"+new_link if highest_score >= 0.6 else "{RAIZ}"
+            with open(f"{root}/{file_name}", "r") as links:
+                line = links.readlines()
+                old_links = [url.strip("\n").strip(" ") for url in line]
+                old_links = list(filter(None, [re.sub("https?://.*?/", "", url) for url in old_links]))
+                new_links = list(filter(None, [re.sub("https?://.*?/", "", url) for url in new_links]))
+                redirects = []
+                
+                for old_link in old_links:
+                    if old_link not in new_links:
+                        highest_score = 0
+                        winner = ""
+                        for new_link in new_links:
+                            score = similar(None, old_link, new_link).ratio()
+                            if score > highest_score:
+                                highest_score = score
+                                winner = "{RAIZ}/"+new_link if highest_score >= 0.6 else "{RAIZ}"
 
-                    redirects.append(f"redirect 301 /{old_link} {winner}")
+                        redirects.append(f"redirect 301 /{old_link} {winner}")
+        except:
+            self.log.append(f"- It was not possible to perform the redirects")
+
 
         redirects = "\n        ".join(redirects)
         self.change_file(
