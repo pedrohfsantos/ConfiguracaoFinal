@@ -1,10 +1,9 @@
 from Class import *
 from tqdm.auto import tqdm
-from os import makedirs
 import os
 
 log = []
-
+localhost = "C:/xampp/htdocs/Git/"
 
 links = Links(log)
 sitemap = Sitemap(log)
@@ -18,7 +17,7 @@ secretKey = ""
 # with the value false does not change the item
 
 projetos = [
-    "https://www.site.com.br/, idAnalytics, idCliente, true",
+    "https://www.pontocertoaquecedores.com.br/, idAnalytics, idCliente, true",
 ]
 
 for projeto in tqdm(projetos):
@@ -29,15 +28,20 @@ for projeto in tqdm(projetos):
         idAnalytics = projeto[1]
         idCliente = projeto[2]
         key = projeto[3]
+        path = f"{localhost}{links.url_base(url)}"
+        
+        if not os.path.isdir(path):
+            os.system(f"git clone git@bitbucket.org:USER/{links.url_base(url)}.git {path}")
+        else:
+            os.system(f"cd {path} & git add .")
+            os.system(f"cd {path} & git stash")
+            os.system(f"cd {path} & git pull")
+
+        sig = False if not os.path.isdir(f"{path}/doutor") else True
 
         site = links.links_site(url)
-        
-        if not os.path.isdir(links.url_base(url)):
-            os.system(f"git clone git@bitbucket.org:USER/{links.url_base(url)}.git")
 
         if len(site) > 20 and len([x for x in site if 'localhost' in x or 'mpitemporario' in x]) == 0:
-            path = links.url_base(url)
-
             sitemap.generator_sitemap_xml(site, path)
             arquivos.copy_file("Modelos/FILE", f"{path}/FILE")
             arquivos.copy_file("Modelos/FILE", f"{path}/FILE")
@@ -88,10 +92,12 @@ for projeto in tqdm(projetos):
                     new=f"$secretKey = '{secretKey}';"
                     )
 
-
-            arquivos.htaccess(file=f'{path}/inc/gerador-htaccess.php')
-
-            arquivos.redirect(root=path, new_links=site)
+            if sig:
+                arquivos.htaccess(file=f'{path}/index.php')
+                arquivos.redirect(file=f'{path}/index.php', root=path, new_links=site)
+            else:
+                arquivos.htaccess(file=f'{path}/inc/gerador-htaccess.php')
+                arquivos.redirect(file=f'{path}/inc/gerador-htaccess.php', root=path, new_links=site)
 
 
             if len(log) > 0:
@@ -99,12 +105,13 @@ for projeto in tqdm(projetos):
 
             log.clear()
 
-            os.system(f"cd {links.url_base(url)} & git add .")
-            os.system(f"cd {links.url_base(url)} & git commit -m Configuração")
-            os.system(f"cd {links.url_base(url)} & git push")
+            os.system(f"cd {path} & git add .")
+            os.system(f"cd {path} & git commit -m Configuração")
+            os.system(f"cd {path} & git push")
 
         else:
             arquivos.log_error("error", f"{url} - link numbers below expectations")
 
-    except:
+    except Exception as erro:
         arquivos.log_error("error", f"{url} - It was not possible to complete the script")
+        # print(erro)

@@ -20,11 +20,11 @@ class Arquivos:
 
     def change_file(self, file, regex, new):
         try:
-            with open(file, "rt", -1, "utf-8") as robots:
+            with open(file, "rt", -1, encoding="utf-8") as robots:
                 date = robots.read()
                 date = re.sub(regex, new, date)
 
-            with open(f"{file}", "wt", -1, "utf-8") as robots:
+            with open(f"{file}", "wt", -1, encoding="utf-8") as robots:
                 robots.write(date)
 
         except:
@@ -45,7 +45,7 @@ class Arquivos:
                 new="RewriteRule ^.*$ https://%{SERVER_NAME}%{REQUEST_URI} [R,L]"
                 )
             
-            with open(f"{file}", "rt", -1, "utf-8") as htaccess:
+            with open(f"{file}", "rt", -1, encoding="utf-8") as htaccess:
                 date = htaccess.read()
                 rewrite = re.search('RewriteCond %{HTTPS} !=on', date)
                 rewrite_www = re.search('RewriteCond %{HTTP_HOST} !\^www\\\. \[NC]', date)
@@ -72,13 +72,13 @@ class Arquivos:
             self.log.append(f"- error when changing the file .htaccess")
 
 
-    def redirect(self, root, new_links):
+    def redirect(self, file, root, new_links):
         try:
             all_files =  listdir(root)
             r = re.compile("links?.txt", re.IGNORECASE)
             file_name = list(filter(r.match, all_files))[0]
 
-            with open(f"{root}/{file_name}", "r") as links:
+            with open(f"{root}/{file_name}", "r", encoding="utf-8") as links:
                 line = links.readlines()
                 old_links = [url.strip("\n").strip(" ") for url in line]
                 old_links = list(filter(None, [re.sub("https?://.*?/", "", url) for url in old_links]))
@@ -101,13 +101,14 @@ class Arquivos:
 
 
         redirects = "\n        ".join(redirects)
+        
         self.change_file(
-                file=f"{root}/inc/gerador-htaccess.php", 
+                file=f"{file}", 
                 regex="#redirects", 
                 new=f"#redirects\n {redirects}"
                 )
 
 
     def log_error(self, name, message):
-        with open(f"{name}.txt", 1, "utf-8") as arquivo:
+        with open(f"{name}.txt", "w", -1, encoding="utf-8") as arquivo:
             arquivo.write(f"{message}\n")
