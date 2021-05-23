@@ -17,7 +17,7 @@ secretKey = ""
 # with the value false does not change the item
 
 projetos = [
-    "https://www.pontocertoaquecedores.com.br/, idAnalytics, idCliente, true",
+    "https://www.site.com.br/, idAnalytics, idCliente, true",
 ]
 
 for projeto in tqdm(projetos):
