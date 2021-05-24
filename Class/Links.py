@@ -67,3 +67,6 @@ class Links:
         url = url[0] if mpitemporario else [x for x in url if x][-1]
         return url.replace('www.', '')
 
+    def gera_htaccess(self, home):
+        self.session.get(home)
+

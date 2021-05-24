@@ -1,6 +1,9 @@
 from Class import *
 from tqdm.auto import tqdm
+from requests_html import HTMLSession
+from time import sleep
 import os
+
 
 log = []
 localhost = "C:/xampp/htdocs/Git/"
@@ -13,11 +16,11 @@ arquivos = Arquivos(log)
 siteKey = ""
 secretKey = ""
 
-# "https://www.site.com.br/, idAnalytics or false, idCliente or false, true or false",
+# "https://www.site.com.br/, idAnalytics or false, idCliente or false, true or false, userName, password",
 # with the value false does not change the item
 
 projetos = [
-    "https://www.site.com.br/, idAnalytics, idCliente, true",
+    "https://www.site.com.br/, idAnalytics, idCliente, true, userName, password",
 ]
 
 for projeto in tqdm(projetos):
@@ -28,6 +31,9 @@ for projeto in tqdm(projetos):
         idAnalytics = projeto[1]
         idCliente = projeto[2]
         key = projeto[3]
+        user_name = projeto[4]
+        password = projeto[5]
+
         path = f"{localhost}{links.url_base(url)}"
         
         if not os.path.isdir(path):
@@ -38,6 +44,23 @@ for projeto in tqdm(projetos):
             os.system(f"cd {path} & git pull")
 
         sig = False if not os.path.isdir(f"{path}/doutor") else True
+
+        if sig:
+            with open("Modelos/.htaccess-sig", 'r', encoding="utf-8") as htaccess:
+                htaccess = htaccess.read()
+        else:
+            with open("Modelos/.htaccess", 'r', encoding="utf-8") as htaccess:
+                htaccess = htaccess.read()
+
+        new_htaccess = htaccess.replace("{{PROJETO}}", f"www.{links.url_base(url)}")
+
+        with open(f"{path}/.htaccess", "w", encoding="utf-8") as htaccess:
+            htaccess.write(new_htaccess)
+
+        os.system(f"cd {path} & git add . & git commit -m \"Ajustando htaccess para configuração final\" & git push")
+        
+        server = Server(host=links.url_base(url), user_name=user_name, password=password)
+        server.git_pull(project=links.url_base(url), htaccess=True)
 
         site = links.links_site(url)
 
@@ -99,15 +122,19 @@ for projeto in tqdm(projetos):
                 arquivos.htaccess(file=f'{path}/inc/gerador-htaccess.php')
                 arquivos.redirect(file=f'{path}/inc/gerador-htaccess.php', root=path, new_links=site)
 
+            os.system(f"cd {path} & rm .htaccess")
 
             if len(log) > 0:
                 arquivos.log_error("error", f"{url} - " + ' '.join(log))
 
             log.clear()
 
-            os.system(f"cd {path} & git add .")
-            os.system(f"cd {path} & git commit -m Configuração")
-            os.system(f"cd {path} & git push")
+            os.system(f"cd {path} & git add . & git commit -m \"Configuração final\" & git push")
+            server.git_pull(project=links.url_base(url))
+            links.gera_htaccess(url)
+            sleep(3)
+            server.commit_htaccess(project=links.url_base(url))
+
 
         else:
             arquivos.log_error("error", f"{url} - link numbers below expectations")
