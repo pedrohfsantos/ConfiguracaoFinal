@@ -1,6 +1,5 @@
 from Class import *
 from tqdm.auto import tqdm
-from requests_html import HTMLSession
 from time import sleep
 import os
 
