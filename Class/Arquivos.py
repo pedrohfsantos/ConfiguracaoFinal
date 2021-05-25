@@ -2,7 +2,6 @@ import shutil
 import re
 from os import listdir
 from difflib import SequenceMatcher as similar
-from pprint import pprint
 
 
 class Arquivos:
@@ -93,21 +92,20 @@ class Arquivos:
                             score = similar(None, old_link, new_link).ratio()
                             if score > highest_score:
                                 highest_score = score
-                                winner = "{RAIZ}/"+new_link if highest_score >= 0.6 else "{RAIZ}"
+                                winner = "{$RAIZ}/"+new_link if highest_score >= 0.7 else "{$RAIZ}"
 
                         redirects.append(f"redirect 301 /{old_link} {winner}")
         except:
             self.log.append(f"- It was not possible to perform the redirects")
 
-
-        redirects = "\n        ".join(redirects)
-        
-        self.change_file(
-                file=f"{file}", 
-                regex="#redirects", 
-                new=f"#redirects\n {redirects}"
-                )
-
+        else:
+            redirects = "\n        ".join(redirects)
+            
+            self.change_file(
+                    file=f"{file}", 
+                    regex="#redirects", 
+                    new=f"#redirects\n {redirects}"
+                    )
 
     def log_error(self, name, message):
         with open(f"{name}.txt", "w", -1, encoding="utf-8") as arquivo:
